@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  In-game currency icon. The brief mapped a `coin` asset, but none shipped in the
+  project, so we provide a crisp, resolution-independent vector instead of a raster.
+  Used via painterResource(R.drawable.ic_coin).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Outer rim -->
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M24,2 A22,22 0 1,0 24,46 A22,22 0 1,0 24,2 Z" />
+    <!-- Inner face -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M24,7 A17,17 0 1,0 24,41 A17,17 0 1,0 24,7 Z" />
+    <!-- Engraved ring -->
+    <path
+        android:strokeColor="#FFB300"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:pathData="M24,11 A13,13 0 1,0 24,37 A13,13 0 1,0 24,11 Z" />
+    <!-- Currency mark -->
+    <path
+        android:fillColor="#FF8F00"
+        android:pathData="M22,14 L26,14 L26,17 L29,17 L29,21 L26,21 L26,27 L29,27 L29,31 L26,31 L26,34 L22,34 L22,31 L19,31 L19,27 L22,27 L22,21 L19,21 L19,17 L22,17 Z" />
+</vector>
