@@ -1,0 +1,2 @@
+-keep @interface com.anor.security.StringShield
+-keep class com.anor.security.AesDecryptor { *; }

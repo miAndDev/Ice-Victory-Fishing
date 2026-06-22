@@ -19,3 +19,19 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep @interface com.anor.security.StringShield
+-keep class com.anor.security.AesDecryptor { *; }
+
+# Strip debug/verbose logging from release builds.
+# R8 removes these calls (and the dead string-building that feeds them)
+# because they are declared to have no side effects.
+-assumenosideeffects class android.util.Log {
+    public static int d(...);
+    public static int v(...);
+}
+-obfuscationdictionary words
+-packageobfuscationdictionary words
+-classobfuscationdictionary words
+-repackageclasses
+-allowaccessmodification
