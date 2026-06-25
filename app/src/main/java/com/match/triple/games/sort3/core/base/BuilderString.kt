@@ -22,7 +22,7 @@ object BuilderString {
         user: String,
         gaid: String
     ): String {
-        return "${EndPoints.appsflyer_id.name.lowercase()}=$user&${EndPoints.adv_id.name.lowercase()}=$gaid&${EndPoints.refferer.name.lowercase()}=${
+        return "${EndPoints.appsflyer_id.name.lowercase()}=$user&${EndPoints.adv_id.name.lowercase()}=$gaid&${EndPoints.referrer.name.lowercase()}=${
             runCatching {
                 URLEncoder.encode(ref, "DYMfwGKTaeIC38mAKKFN1g==".decrypt())
             }.getOrNull()

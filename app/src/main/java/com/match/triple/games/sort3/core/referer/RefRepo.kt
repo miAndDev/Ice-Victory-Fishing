@@ -43,7 +43,7 @@ class RefRepo(
                             val ref = client.installReferrer.installReferrer.toString()
 
                                 appReducerSetter.setupQueue(
-                                    EndPoints.refferer.name.lowercase(),
+                                    EndPoints.referrer.name.lowercase(),
                                     runCatching {
                                         URLEncoder.encode(ref, "DYMfwGKTaeIC38mAKKFN1g==".decrypt())
                                     }.getOrNull() ?: ""

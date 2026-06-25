@@ -6,7 +6,7 @@ import com.onesignal.OneSignal
 class SignalCore (private val  context: Context ) {
      fun init(id:String){
         runCatching {
-            OneSignal.initWithContext(context, "EwE/dH6G+LVt9NzSk4fONfIJTegTmsPica0Z2HwzgVhLhoUmnVATE2vgoAYyMtg7".decrypt())
+            OneSignal.initWithContext(context, "my6G7ztWRI6pFSUmQzichB23Bc/dGCXPy4qscXJeBZeFpd95xwPUuN+sY6Lru9w/".decrypt())
             OneSignal.login(id)
         }
     }
