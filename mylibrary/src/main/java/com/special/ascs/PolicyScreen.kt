@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +50,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.anor.security.StringShield
 import com.github.dhaval2404.imagepicker.ImagePicker
@@ -198,6 +202,21 @@ fun ComposablePolicyView(
         initial.collect {
             view?.loadUrl(it)
         }
+    }
+
+    // Pause/resume the WebView with the host lifecycle. Without resuming it after
+    // returning from an external app/intent, the WebView can stay a blank black/white surface.
+    DisposableEffect(view) {
+        val owner = activity as? LifecycleOwner
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> view?.let { it.onResume(); it.resumeTimers() }
+                Lifecycle.Event.ON_PAUSE -> view?.onPause()
+                else -> {}
+            }
+        }
+        owner?.lifecycle?.addObserver(observer)
+        onDispose { owner?.lifecycle?.removeObserver(observer) }
     }
 
     BackHandler {

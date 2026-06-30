@@ -39,6 +39,7 @@ class Prospects(
     ): Boolean {
         val createPopup = onCreateWindow ?: return false
         val popupMessage = resultMsg ?: return false
+        view?.onPause()
         createPopup(popupMessage)
         return true
     }

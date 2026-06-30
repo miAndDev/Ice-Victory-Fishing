@@ -11,7 +11,8 @@ class   Aspects(
     private val onOverride: (Uri?) -> Boolean,
     private val clearHistory: (String) -> Unit,
     private val onCheck: (String) -> Unit,
-    private val onHttpError: () -> Unit = {}
+    private val onHttpError: () -> Unit = {},
+    private val onExternalIntentLaunched: (() -> Unit)? = null
 ) : WebViewClient() {
 
     private var isFirstTime = true
@@ -22,7 +23,11 @@ class   Aspects(
         request: WebResourceRequest?
     ): Boolean {
         return try {
-            onOverride(request?.url)
+            val handled = onOverride(request?.url)
+            // The URL was taken over by an external app, so this WebView will never
+            // load a page. Notify so an empty popup window can be torn down.
+            if (handled) onExternalIntentLaunched?.invoke()
+            handled
         } catch (_: Exception) {
             true
         }
@@ -34,7 +39,6 @@ class   Aspects(
         errorResponse: WebResourceResponse?
     ) {
         super.onReceivedHttpError(view, request, errorResponse)
-        Log.d("LINK_DATA", errorResponse?.statusCode.toString())
 
         if (isFirstTime && request?.isForMainFrame == true && errorResponse?.statusCode == 403) {
             onHttpError()

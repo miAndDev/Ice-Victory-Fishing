@@ -22,7 +22,8 @@ class PolicyView(
     private val onShowFileChooser: (ValueCallback<Array<out Uri?>?>?) -> Unit,
     private val onPermission: (PermissionRequest?) -> Unit,
     private val extender: Extender, private val onNewProgress: (Int) -> Unit,
-    private val onCloseWindow: ((WebView?) -> Unit)? = null
+    private val onCloseWindow: ((WebView?) -> Unit)? = null,
+    private val onExternalIntentLaunched: (() -> Unit)? = null
 ) : WebView(context) {
     init {
         initSettings()
@@ -88,7 +89,7 @@ class PolicyView(
             extender.checkOnceMore(it, default)
         }, onHttpError = {
             extender.onError()
-        })
+        }, onExternalIntentLaunched = onExternalIntentLaunched)
     }
 
 
@@ -112,14 +113,20 @@ class PolicyView(
             onPermission = onPermission,
             extender = extender,
             onNewProgress = onNewProgress,
-            onCloseWindow = { window ->
-                dialog.dismiss()
-                window?.destroy()
-            }
+            onCloseWindow = { dialog.dismiss() },
+            // A popup that immediately hands off to an external app never loads a page
+            // and never fires window.close(); dismiss it (posted, so we don't destroy the
+            // WebView from inside its own client callback) instead of leaving a blank screen.
+            onExternalIntentLaunched = { this.post { dialog.dismiss() } }
         )
         dialog.setContentView(popupView)
         dialog.window?.setLayout(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        dialog.setOnDismissListener { popupView.destroy() }
+        // Whatever closed the popup (JS close or external hand-off), tear it down and
+        // resume the parent WebView, which was paused in Prospects.onCreateWindow.
+        dialog.setOnDismissListener {
+            popupView.destroy()
+            this.onResume()
+        }
         dialog.show()
 
         val transport = resultMsg.obj as? WebView.WebViewTransport ?: return

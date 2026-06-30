@@ -1,12 +1,12 @@
 package com.special.ascs.utils
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.webkit.WebView
+import com.anor.security.StringShield
 import com.special.ascs.utils.Rulz.APP_RULES
-
+import com.special.ascs.utils.Rulz.DIRECT_APP_RULES
+@StringShield
 class Extender(
     private val onHideSplash: () -> Unit,
     private val onShowMenu: () -> Unit,
@@ -18,33 +18,38 @@ class Extender(
         return handleUrl(str.toString(), context?.context)
     }
 
-    private fun handleUrl(url: String, context: Context?): Boolean =
-        when {
-            url.startsWith("about:", ignoreCase = true) -> false
-            url.startsWith("blob:", ignoreCase = true) -> false
-            url.startsWith("data:", ignoreCase = true) -> false
-            extHelper.isHttpsAccordingToRules(url) -> false
-            else -> {
-                launchIntentForUrl(url, context)
-                true
-            }
+    private fun handleUrl(url: String, context: Context?): Boolean {
+        if (url.startsWith("about:", ignoreCase = true) ||
+            url.startsWith("blob:", ignoreCase = true) ||
+            url.startsWith("data:", ignoreCase = true)
+        ) return false
+
+        // Payment/banking hosts are handed off to their own app directly, even when
+        // the URL is plain https (which would otherwise stay in the WebView).
+        val directPackage = DIRECT_APP_RULES.entries
+            .firstOrNull { url.contains(it.key, ignoreCase = true) }
+            ?.value
+        if (directPackage != null) {
+            context?.let { checker.launchUrlInPackage(it, url, directPackage) }
+            return true
         }
+
+        if (extHelper.isHttpsAccordingToRules(url)) return false
+
+        launchIntentForUrl(url, context)
+        return true
+    }
 
     private fun launchIntentForUrl(url: String, context: Context?) {
         context ?: return
         runCatching {
-            val intent = checker.getIntentForUrl(url)
-                .apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+            // Prefer an app-rule match for the store fallback, then defer the whole
+            // launch/fallback flow (flags, store, messaging) to the checker.
+            val fallbackPackageName = APP_RULES.entries
+                .firstOrNull { url.contains(it.key, ignoreCase = true) }
+                ?.value
 
-            // Try to open the target app/intent directly first.
-            if (checker.tryStart(context, intent)) return@runCatching
-
-            // App is missing — resolve its package, then send the user to the store.
-            val packageName = intent.`package`
-                ?: intent.component?.packageName
-                ?: APP_RULES.entries.firstOrNull { url.contains(it.key, ignoreCase = true) }?.value
-
-            packageName?.let { checker.openInStore(it, context) }
+            checker.launchUrl(context, url, fallbackPackageName)
         }
     }
 
@@ -61,7 +66,6 @@ class Extender(
         ) {
             onShowMenu()
         }
-        Log.d("LINK_DATA", "Chau finished $str")
         onHideSplash()
     }
 
